@@ -779,6 +779,7 @@ string sToolValue[];               // Tool diameter as string
 
 enum { HPGLsolution = 1016 }       // Inch/1016 = 0.025 mm
 enum { ISELsolution = 1000 }       // mm/1000 Isel format
+enum { CNCrevolution = 60 }       // mm/min gcode format
 
 real   Mirror           = 1.0;
 int    Mill_OffsetX     = 0;
@@ -787,7 +788,7 @@ int    Ref_null_offsetY = 0;
 int    Ref_offsetX[];
 int    Ref_offsetY[];
 int    Ref_cnto = 0;
-real   RefHoleCircle = 3.0;        // Der Durchmesser für den Circle der im Referenz-Package für den Maschinennullpunkt
+real   RefHoleCircle = 5.5;        // Der Durchmesser für den Circle der im Referenz-Package für den Maschinennullpunkt
                                    // benutzt wird.
 string Mirror_axis;
 real   Drill_mirrorPCB  = -1;      // for message to mirror the PCB by operator
@@ -796,7 +797,7 @@ int    MachineMenuOn = 1;          // 2011-10-20 maschine menu in separate tab
                                    // * for www.cnc-papst.de * 2005-06-23
 
 int    DrillRefOn       = 0;       // drill reference holes first to fix the pcb on machine
-real   DrillRefDiameter = 3.0;     // the diameter of reference holes
+real   DrillRefDiameter = 5.5;     // the diameter of reference holes
 real   DrillRefDeep     = -6;      // the depth of reference holes
 
 // to swap for menu
@@ -1663,7 +1664,7 @@ void ValueInit(void) {
 
 int get_tool(real drill) {
   int tool = 0;
-  if (drill > Max_Drill_Diameter && UseRack) {
+  if (drill > Max_Drill_Diameter ) {
     drill = Max_Drill_Diameter; // 2013-02-20 preset to Max_Drill_Diameter
     return nrMaxDrillDiameter;
   }
@@ -1808,61 +1809,61 @@ void fullineIsel( int x1, int y1, int x2, int y2) {
 void  startlineCnc( int x1, int y1, int x2, int y2) {
   switch(CNCmillResolution) {  // 2011-02-02
     case Res32 : CNCsolution = 100;
-                  printf("G00 X%05.0f Y%05.0f\nG01 Z%05.0f\nG01 X%05.0f Y%05.0f\n",   // Format 3 2
+                  printf("G00 X%05.0f Y%05.0f F%.0f\nG01 Z%05.0f F%.0f\nG01 X%05.0f Y%05.0f F%.0f\n",   // Format 3 2
                           Mirror * u2mm(x1 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y1 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*CNCsolution,     // Z-Achse eintauchen 2011-01-27
+                          u2mm(y1 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution,
+                          Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,     // Z-Achse eintauchen 2011-01-27
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y2 + Ref_null_offsetY)*CNCsolution
+                          u2mm(y2 + Ref_null_offsetY)*CNCsolution, Tool_vel * CNCrevolution
                         );
                   break;
 
     case Res33 : CNCsolution = 1000;
-                  printf("G00 X%06.0f Y%06.0f\nG01 Z%06.0f\nG01 X%06.0f Y%06.0f\n",   // Format 3 3
+                  printf("G00 X%06.0f Y%06.0f F%.0f\nG01 Z%06.0f F%.0f\nG01 X%06.0f Y%06.0f F%.0f\n",   // Format 3 3
                           Mirror * u2mm(x1 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y1 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*CNCsolution,     // Z-Achse eintauchen 2011-01-27
+                          u2mm(y1 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution,
+                          Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,     // Z-Achse eintauchen 2011-01-27
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y2 + Ref_null_offsetY)*CNCsolution
+                          u2mm(y2 + Ref_null_offsetY)*CNCsolution, Tool_vel * CNCrevolution
                          );
                   break;
 
     case Res34 : CNCsolution = 10000;
-                  printf("G00 X%07.0f Y%07.0f\nG01 Z%07.0f\nG01 X%07.0f Y%07.0f\n",   // Format 3 4
+                  printf("G00 X%07.0f Y%07.0f F%.0f\nG01 Z%07.0f F%.0f\nG01 X%07.0f Y%07.0f F%.0f\n",   // Format 3 4
                           Mirror * u2mm(x1 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y1 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*CNCsolution,     // Z-Achse eintauchen 2011-01-27
+                          u2mm(y1 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution,
+                          Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,    // Z-Achse eintauchen 2011-01-27
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y2 + Ref_null_offsetY)*CNCsolution
+                          u2mm(y2 + Ref_null_offsetY)*CNCsolution, Tool_vel * CNCrevolution
                         );
                   break;
     case Res3_2 : CNCsolution = 1; // 2011-02-03
-                  printf("G00 X%05.2f Y%05.2f\nG01 Z%05.2f\nG01 X%05.2f Y%05.2f\n",   // Format 3.2
+                  printf("G00 X%05.2f Y%05.2f F%.0f\nG01 Z%05.2f F%.0f\nG01 X%05.2f Y%05.2f F%.0f\n",   // Format 3.2
                           Mirror * u2mm(x1 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y1 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*CNCsolution,     // Z-Achse eintauchen 2011-01-27
+                          u2mm(y1 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution,
+                          Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,     // Z-Achse eintauchen 2011-01-27
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y2 + Ref_null_offsetY)*CNCsolution
+                          u2mm(y2 + Ref_null_offsetY)*CNCsolution, Tool_vel * CNCrevolution
                         );
                   break;
 
     case Res3_3 : CNCsolution = 1;
-                  printf("G00 X%06.3f Y%06.3f\nG01 Z%06.3f\nG01 X%06.3f Y%06.3f\n",   // Format 3.3
+                  printf("G00 X%06.3f Y%06.3f F%.0f\nG01 Z%06.3f F%.0f\nG01 X%06.3f Y%06.3f F%.0f\n",   // Format 3.3
                           Mirror * u2mm(x1 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y1 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*CNCsolution,     // Z-Achse eintauchen 2011-01-27
+                          u2mm(y1 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution,
+                          Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,     // Z-Achse eintauchen 2011-01-27
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y2 + Ref_null_offsetY)*CNCsolution
+                          u2mm(y2 + Ref_null_offsetY)*CNCsolution, Tool_vel * CNCrevolution
                          );
                   break;
 
     case Res3_4 : CNCsolution = 1;
-                  printf("G00 X%07.4f Y%07.4f\nG01 Z%07.4f\nG01 X%07.4f Y%07.4f\n",   // Format 3.4
+                  printf("G00 X%07.4f Y%07.4f F%.0f\nG01 Z%07.4f F%.0f\nG01 X%07.4f Y%07.4f F%.0f\n",   // Format 3.4
                           Mirror * u2mm(x1 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y1 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*CNCsolution,     // Z-Achse eintauchen 2011-01-27
+                          u2mm(y1 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution,
+                          Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,     // Z-Achse eintauchen 2011-01-27
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y2 + Ref_null_offsetY)*CNCsolution
+                          u2mm(y2 + Ref_null_offsetY)*CNCsolution, Tool_vel * CNCrevolution
                         );
                   break;
   }
@@ -1914,45 +1915,45 @@ void nextlineCnc( int x2, int y2) {
 void endlineCnc( int x2, int y2) {
   switch(CNCmillResolution) {  // 2011-02-02
     case Res32  : CNCsolution = 100;
-                  printf("G01 X%05.0f Y%05.0f\nG00 Z%05.0f\n",
+                  printf("G01 X%05.0f Y%05.0f\nG00 Z%05.0f F%.0f\n",
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
                           u2mm(y2 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*-1*CNCsolution  // Z-Achse wieder hoch
+                          Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution  // Z-Achse wieder hoch
                         );
                   break;
     case Res33  : CNCsolution = 1000;
-                  printf("G01 X%06.0f Y%06.0f\nG00 Z%06.0f\n",
+                  printf("G01 X%06.0f Y%06.0f\nG00 Z%06.0f F%.0f\n",
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
                           u2mm(y2 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*-1*CNCsolution  // Z-Achse wieder hoch
+                          Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution  // Z-Achse wieder hoch
                         );
                   break;
     case Res34  : CNCsolution = 10000;
-                  printf("G01 X%07.0f Y%07.0f\nG00 Z%07.0f\n",
+                  printf("G01 X%07.0f Y%07.0f\nG00 Z%07.0f F%.0f\n",
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
                           u2mm(y2 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*-1*CNCsolution  // Z-Achse wieder hoch
+                          Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution  // Z-Achse wieder hoch
                         );
                   break;
     case Res3_2 : CNCsolution = 1;
-                  printf("G01 X%05.2f Y%05.2f\nG00 Z%05.2f\n",
+                  printf("G01 X%05.2f Y%05.2f\nG00 Z%05.2f F%.0f\n",
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
                           u2mm(y2 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*-1*CNCsolution  // Z-Achse wieder hoch
+                          Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution  // Z-Achse wieder hoch
                         );
                   break;
     case Res3_3 : CNCsolution = 1;
-                  printf("G01 X%06.3f Y%06.3f\nG00 Z%06.3f\n",
+                  printf("G01 X%06.3f Y%06.3f\nG00 Z%06.3f F%.0f\n",
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
                           u2mm(y2 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*-1*CNCsolution  // Z-Achse wieder hoch
+                          Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution  // Z-Achse wieder hoch
                         );
                   break;
     case Res3_4 : CNCsolution = 1;
-                  printf("G01 X%07.4f Y%07.4f\nG00 Z%07.4f\n",
+                  printf("G01 X%07.4f Y%07.4f\nG00 Z%07.4f F%.0f\n",
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
                           u2mm(y2 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*-1*CNCsolution  // Z-Achse wieder hoch
+                          Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution  // Z-Achse wieder hoch
                         );
                   break;
   }
@@ -1962,63 +1963,63 @@ void endlineCnc( int x2, int y2) {
 void fullineCnc( int x1, int y1, int x2, int y2) {
   switch(CNCmillResolution) {  // 2011-02-02
     case Res32  : CNCsolution = 100;
-                  printf("G00 X%05.0f Y%05.0f\nG01 Z%05.0f\nG01 X%05.0f Y%05.0f\nG00 Z%05.0f\n",  // Format 3.2
+                  printf("G00 X%05.0f Y%05.0f F%.0f\nG01 Z%05.0f F%.0f\nG01 X%05.0f Y%05.0f F%.0f\nG00 Z%05.0f F%.0f\n",  // Format 3.2
                           Mirror * u2mm(x1 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y1 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*CNCsolution,     // Z-Achse eintauchen
+                          u2mm(y1 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution,
+                          Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,     // Z-Achse eintauchen
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y2 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*-1*CNCsolution  // Z-Achse wieder hoch 2011-01-27
+                          u2mm(y2 + Ref_null_offsetY)*CNCsolution, Tool_vel * CNCrevolution,
+                          Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution  // Z-Achse wieder hoch 2011-01-27
                         );
                   break;
     case Res33  : CNCsolution = 1000;
-                  printf("G00 X%06.0f Y%06.0f\nG01 Z%06.0f\nG01 X%06.0f Y%06.0f\nG00 Z%06.0f\n",  // Format 3.3
+                  printf("G00 X%06.0f Y%06.0f F%.0f\nG01 Z%06.0f F%.0f\nG01 X%06.0f Y%06.0f F%.0f\nG00 Z%06.0f F%.0f\n",  // Format 3.3
                           Mirror * u2mm(x1 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y1 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*CNCsolution,     // Z-Achse eintauchen
+                          u2mm(y1 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution,
+                          Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,     // Z-Achse eintauchen
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y2 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*-1*CNCsolution  // Z-Achse wieder hoch 2011-01-27
+                          u2mm(y2 + Ref_null_offsetY)*CNCsolution, Tool_vel * CNCrevolution,
+                          Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution  // Z-Achse wieder hoch 2011-01-27
                         );
                   break;
     case Res34  : CNCsolution = 10000;
-                  printf("G00 X%07.0f Y%07.0f\nG01 Z%07.0f\nG01 X%07.0f Y%07.0f\nG00 Z%07.0f\n",  // Format 3.4
+                  printf("G00 X%07.0f Y%07.0f F%.0f\nG01 Z%07.0f F%.0f\nG01 X%07.0f Y%07.0f F%.0f\nG00 Z%07.0f F%.0f\n",  // Format 3.4
                           Mirror * u2mm(x1 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y1 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*CNCsolution,     // Z-Achse eintauchen
+                          u2mm(y1 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution,
+                          Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,     // Z-Achse eintauchen
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y2 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*-1*CNCsolution  // Z-Achse wieder hoch 2011-01-27
+                          u2mm(y2 + Ref_null_offsetY)*CNCsolution, Tool_vel * CNCrevolution,
+                          Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution  // Z-Achse wieder hoch 2011-01-27
                         );
                   break;
     case Res3_2 : CNCsolution = 1;
-                  printf("G00 X%05.2f Y%05.2f\nG01 Z%05.2f\nG01 X%05.2f Y%05.2f\nG00 Z%05.2f\n",  // Format 3.2
+                  printf("G00 X%05.2f Y%05.2f F%.0f\nG01 Z%05.2f F%.0f\nG01 X%05.2f Y%05.2f F%.0f\nG00 Z%05.2f F%.0f\n",  // Format 3.2
                           Mirror * u2mm(x1 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y1 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*CNCsolution,     // Z-Achse eintauchen
+                          u2mm(y1 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution,
+                          Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,     // Z-Achse eintauchen
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y2 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*-1*CNCsolution  // Z-Achse wieder hoch 2011-01-27
+                          u2mm(y2 + Ref_null_offsetY)*CNCsolution, Tool_vel * CNCrevolution,
+                          Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution  // Z-Achse wieder hoch 2011-01-27
                         );
                   break;
     case Res3_3 : CNCsolution = 1;
-                  printf("G00 X%06.3f Y%06.3f\nG01 Z%06.3f\nG01 X%06.3f Y%06.3f\nG00 Z%06.3f\n",  // Format 3.3
+                  printf("G00 X%06.3f Y%06.3f F%.0f\nG01 Z%06.3f F%.0f\nG01 X%06.3f Y%06.3f F%.0f\nG00 Z%06.3f F%.0f\n",  // Format 3.3
                           Mirror * u2mm(x1 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y1 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*CNCsolution,     // Z-Achse eintauchen
+                          u2mm(y1 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution,
+                          Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,     // Z-Achse eintauchen
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y2 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*-1*CNCsolution  // Z-Achse wieder hoch 2011-01-27
+                          u2mm(y2 + Ref_null_offsetY)*CNCsolution, Tool_vel * CNCrevolution,
+                          Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution  // Z-Achse wieder hoch 2011-01-27
                         );
                   break;
     case Res3_4 : CNCsolution = 1;
-                  printf("G00 X%07.4f Y%07.4f\nG01 Z%07.4f\nG01 X%07.4f Y%07.4f\nG00 Z%07.4f\n",  // Format 3.4
+                  printf("G00 X%07.4f Y%07.4f F%.0f\nG01 Z%07.4f F%.0f\nG01 X%07.4f Y%07.4f F%.0f\nG00 Z%07.4f F%.0f\n",  // Format 3.4
                           Mirror * u2mm(x1 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y1 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*CNCsolution,     // Z-Achse eintauchen
+                          u2mm(y1 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution,
+                          Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,     // Z-Achse eintauchen
                           Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                          u2mm(y2 + Ref_null_offsetY)*CNCsolution,
-                          Actualmilldeep*-1*CNCsolution  // Z-Achse wieder hoch 2011-01-27
+                          u2mm(y2 + Ref_null_offsetY)*CNCsolution, Tool_vel * CNCrevolution,
+                          Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution  // Z-Achse wieder hoch 2011-01-27
                         );
                   break;
   }
@@ -2259,7 +2260,7 @@ void CircleDraw(int centerx, int centery, int diam, real drilldiamround, int dri
                                      printf("G03 X%05.0f Y%05.0f\nG00 Z%05.0f\n",   // Format 3 2
                                              Mirror * u2mm(centerx + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
                                              u2mm(centery + Ref_null_offsetY)*CNCsolution,
-                                             Actualmilldeep*-1*CNCsolution
+                                             Mill_z_safety*CNCsolution
                                            );
                                      break;
                       case Res33  :  CNCsolution = 1000;
@@ -2271,7 +2272,7 @@ void CircleDraw(int centerx, int centery, int diam, real drilldiamround, int dri
                                      printf("G03 X%06.3f Y%06.3f\nG00 Z%06.3f\n",   // Format 3 3
                                              Mirror * u2mm(centerx + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
                                              u2mm(centery + Ref_null_offsetY)*CNCsolution,
-                                             Actualmilldeep*-1*CNCsolution
+                                             Mill_z_safety*CNCsolution
                                            );
                                      break;
                       case Res34  :  CNCsolution = 10000;
@@ -2283,7 +2284,7 @@ void CircleDraw(int centerx, int centery, int diam, real drilldiamround, int dri
                                      printf("G03 X%07.0f Y%07.0f\nG00 Z%07.0f\n",   // Format 3 4
                                              Mirror * u2mm(centerx + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
                                              u2mm(centery + Ref_null_offsetY)*CNCsolution,
-                                             Actualmilldeep*-1*CNCsolution
+                                             Mill_z_safety*CNCsolution
                                            );
                                      break;
                       case Res3_2 :  CNCsolution = 1;
@@ -2295,7 +2296,7 @@ void CircleDraw(int centerx, int centery, int diam, real drilldiamround, int dri
                                      printf("G03 X%05.2f Y%05.2f\nG00 Z%05.2f\n",   // Format 3.2
                                              Mirror * u2mm(centerx + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
                                              u2mm(centery + Ref_null_offsetY)*CNCsolution,
-                                             Actualmilldeep*-1*CNCsolution
+                                             Mill_z_safety*CNCsolution
                                            );
                                      break;
                       case Res3_3 :  CNCsolution = 1;
@@ -2307,7 +2308,7 @@ void CircleDraw(int centerx, int centery, int diam, real drilldiamround, int dri
                                      printf("G03 X%06.3f Y%06.3f\nG00 Z%06.3f\n",   // Format 3.3
                                              Mirror * u2mm(centerx + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
                                              u2mm(centery + Ref_null_offsetY)*CNCsolution,
-                                             Actualmilldeep*-1*CNCsolution
+                                             Mill_z_safety*CNCsolution
                                            );
                                      break;
                       case Res3_4 :  CNCsolution = 1;
@@ -2319,7 +2320,7 @@ void CircleDraw(int centerx, int centery, int diam, real drilldiamround, int dri
                                      printf("G03 X%07.4f Y%07.4f\nG00 Z%07.4f\n",   // Format 3.4
                                              Mirror * u2mm(centerx + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
                                              u2mm(centery + Ref_null_offsetY)*CNCsolution,
-                                             Actualmilldeep*-1*CNCsolution
+                                             Mill_z_safety*CNCsolution
                                            );
                                      break;
                     }
@@ -2473,64 +2474,64 @@ void DeviceDraw(int x1, int y1, int x2, int y2, int state) {
 
         case Drill_coord :  switch(CNCmillResolution) {  // 2011-02-02
                               case Res32  :  CNCsolution = 100;
-                                             printf("G00 X%05.0f Y%05.0f\n",   // Format 2.4
+                                             printf("G00 X%05.0f Y%05.0f F%.0f\n",   // Format 2.4
                                                      Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                                                     u2mm(y2 + Ref_null_offsetY)*CNCsolution
+                                                     u2mm(y2 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution
                                                   );
-                                             printf("G01 Z%05.0f\nG00 Z%05.0f\n",   // langsam Eintauchen, schnell hoch 2011-01-27
-                                                     Actualmilldeep*CNCsolution,
-                                                     Actualmilldeep*-1*CNCsolution
+                                             printf("G01 Z%05.0f F%.0f\nG00 Z%05.0f F%.0f\n",   // langsam Eintauchen, schnell hoch 2011-01-27
+                                                     Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,
+                                                     Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution
                                                    );
                                              break;
                               case Res33  :  CNCsolution = 1000;
-                                             printf("G00 X%06.0f Y%06.0f\n",   // Format 2.4
+                                             printf("G00 X%06.0f Y%06.0f F%.0f F%.0f\n",   // Format 2.4
                                                      Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                                                     u2mm(y2 + Ref_null_offsetY)*CNCsolution
+                                                     u2mm(y2 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution
                                                   );
-                                             printf("G01 Z%06.0f\nG00 Z%06.0f\n",   // langsam Eintauchen, schnell hoch 2011-01-27
-                                                     Actualmilldeep*CNCsolution,
-                                                     Actualmilldeep*-1*CNCsolution
+                                             printf("G01 Z%06.0f F%.0f\nG00 Z%06.0f F%.0f\n",   // langsam Eintauchen, schnell hoch 2011-01-27
+                                                     Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,
+                                                     Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution
                                                    );
                                              break;
                               case Res34  :  CNCsolution = 10000;
-                                             printf("G00 X%07.0f Y%07.0f\n",   // Format 2.4
+                                             printf("G00 X%07.0f Y%07.0f F%.0f\n",   // Format 2.4
                                                      Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                                                     u2mm(y2 + Ref_null_offsetY)*CNCsolution
+                                                     u2mm(y2 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution
                                                   );
-                                             printf("G01 Z%07.0f\nG00 Z%07.0f\n",   // langsam Eintauchen, schnell hoch 2011-01-27
-                                                     Actualmilldeep*CNCsolution,
-                                                     Actualmilldeep*-1*CNCsolution
+                                             printf("G01 Z%07.0f F%.0f\nG00 Z%07.0f F%.0f\n",   // langsam Eintauchen, schnell hoch 2011-01-27
+                                                     Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,
+                                                     Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution
                                                    );
                                              break;
 
                               case Res3_2 :  CNCsolution = 1;
-                                             printf("G00 X%05.2f Y%05.2f\n",   // Format 2.4
+                                             printf("G00 X%05.2f Y%05.2f F%.0f\n",   // Format 2.4
                                                      Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                                                     u2mm(y2 + Ref_null_offsetY)*CNCsolution
+                                                     u2mm(y2 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution
                                                   );
-                                             printf("G01 Z%05.2f\nG00 Z%05.2f\n",   // langsam Eintauchen, schnell hoch 2011-01-27
-                                                     Actualmilldeep*CNCsolution,
-                                                     Actualmilldeep*-1*CNCsolution
+                                             printf("G01 Z%05.2f F%.0f\nG00 Z%05.2f F%.0f\n",   // langsam Eintauchen, schnell hoch 2011-01-27
+                                                     Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,
+                                                     Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution
                                                    );
                                              break;
                               case Res3_3 :  CNCsolution = 1;
-                                             printf("G00 X%06.3f Y%06.3f\n",   // Format 2.4
+                                             printf("G00 X%06.3f Y%06.3f F%.0f\n",   // Format 2.4
                                                      Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                                                     u2mm(y2 + Ref_null_offsetY)*CNCsolution
+                                                     u2mm(y2 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution
                                                   );
-                                             printf("G01 Z%06.3f\nG00 Z%06.3f\n",   // langsam Eintauchen, schnell hoch 2011-01-27
-                                                     Actualmilldeep*CNCsolution,
-                                                     Actualmilldeep*-1*CNCsolution
+                                             printf("G01 Z%06.3f F%.0f\nG00 Z%06.3f F%.0f\n",   // langsam Eintauchen, schnell hoch 2011-01-27
+                                                     Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,
+                                                     Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution
                                                    );
                                              break;
                               case Res3_4 :  CNCsolution = 1;
-                                             printf("G00 X%07.4f Y%07.4f\n",   // Format 2.4
+                                             printf("G00 X%07.4f Y%07.4f F%.0f\n",   // Format 2.4
                                                      Mirror * u2mm(x2 + Mill_OffsetX)*CNCsolution + u2mm(MillMirr_Offset)*CNCsolution,
-                                                     u2mm(y2 + Ref_null_offsetY)*CNCsolution
+                                                     u2mm(y2 + Ref_null_offsetY)*CNCsolution, Fast_vel * CNCrevolution
                                                   );
-                                             printf("G01 Z%07.4f\nG00 Z%07.4f\n",   // langsam Eintauchen, schnell hoch 2011-01-27
-                                                     Actualmilldeep*CNCsolution,
-                                                     Actualmilldeep*-1*CNCsolution
+                                             printf("G01 Z%07.4f F%.0f\nG00 Z%07.4f F%.0f\n",   // langsam Eintauchen, schnell hoch 2011-01-27
+                                                     Actualmilldeep*CNCsolution, Drill_Vel * CNCrevolution,
+                                                     Mill_z_safety*CNCsolution, Fast_vel * CNCrevolution
                                                    );
                                              break;
                             }
@@ -2671,10 +2672,13 @@ void DeviceReInit(int tool_pass, int Layer, string info) {
     case devCNC:     // *** CNC ***
                      if (tool_pass == MirrorPCB) { // Platine umdrehen **
                        // Meldung an CNC um Platine umzudrehen 2005-11-15
-                       printf("M01 'CNC' Platine umdrehen!\n");
+                       printf("G00 Z%.0f\nG00 X%.0f Y%.0f\n", ParkZposition * CNCsolution, ParkXposition * CNCsolution, ParkYposition * CNCsolution);
+                       printf("M05\n"); // spindle stop
+                       printf("M00; 'CNC' Platine umdrehen!\n");
+                       printf("M03\n"); // spindle on
                      }
                      else {
-                       printf("G36 T%2d\n", tool_pass);      // Werkzeugwechsel 2001-02-01
+                       printf("G04 0 T%2d\n", tool_pass);      // Werkzeugwechsel 2001-02-01
                      }
                      if(test) printf("; # CNC tools\n");
                      output(filesetext(MillFileName,".nci"), "at") {
@@ -2768,7 +2772,7 @@ void output_drills(string s) {
                     break;
     case devISEL  : if (s) printf(";Isel: Gesamt %d %s\n", Cnt_ncdrill, s);
                     break;
-    case devCNC   : if (s) printf("M999 Gesamt %d %s\n", Cnt_ncdrill, s);
+    case devCNC   : if (s) printf("; Gesamt %d %s\n", Cnt_ncdrill, s);
                     break;
   }
   int initCode = 0; // Flag zum Initiaisieren des T-Code zum Fräsen von großen Löchern. 2011-02-14
@@ -2798,11 +2802,15 @@ void output_drills(string s) {
                          break;
          case devISEL  : if (s) printf(";isel fräsen von Bohrungen grösser Tn mit T'%d'\n", Tcode); // 2011-02-11 zum testen
                          break;
-         case devCNC   : if (s) printf("M998 fräsen von Bohrungen grösser Tn\n");
+         case devCNC   : if (s) printf(";fräsen von Bohrungen grösser T'%d'\n", Tcode);
                          break;
         }
       // große Drills werden gefräst, 2012-03-20
+      // set milling deep to outline depth
+      Actualmilldeep = Z_dimension;
       CircleDraw( Nc_drillx[Dindex[n]], Nc_drilly[Dindex[n]], Nc_drilld[Dindex[n]], Nc_drilldround[Dindex[n]], Tcode);
+      // Reset to drilling depth
+      Actualmilldeep = Drill_z_deep;
     }
     else DeviceDraw(Nc_drilld[Dindex[n]], mm2u(Nc_drilldround[Dindex[n]]), Nc_drillx[Dindex[n]], Nc_drilly[Dindex[n]], 3); // Nc_drilldround[] is real! 2013-03-05
   }
@@ -2971,13 +2979,14 @@ void DeviceInit(int tool, int Layer) {
                    // Source: Programmierung Excellon Format Multi-Control X10
                    //         MANIA Electronic  05.03.1985 / 27.02.1986
                    printf("%%\n");           // Excellon format
-                   printf("M48\n");          // Header start
-                   printf("M71\n");          // Unit mm  | M72 = Inch
-                   printf("G21\n");          // datron.de: CAT3D Konverter 2005-11-15 alf@cadsoft.de
+                   printf("G71\n");          // Unit mm  | G70 = Inch
                    printf("G90\n");          // Absolute mode | G91 incremental
-                   for (n = 0; n < Cnt_tools; n++) {
-                     printf("T%02dC%.1f\n", n+1, Drill_tools[n]);
-                     // ** defintion T = Tool  C = Diameter **
+                   printf("M08\n"); // Kühlmittel an
+                   printf("S%d M03\n", Spindle_rpm); // Spindel an
+                   printf("G00 F%.0f\n", Tool_vel * CNCrevolution); // mm/min
+                   for (n = 1; n < Cnt_tools; n++) {
+                     printf("T%02dD%.1f\n", n, Drill_tools[n]);
+                     // ** defintion T = Tool  D = Diameter **
                    }
                    printf("%%\n");           // end of block / new block
                    if (tool == Contour) {
@@ -3004,7 +3013,8 @@ void DeviceEnd(void) {
                     break;
 
     case devCNC:
-                    printf("M74\nM30 Device ende\n");  // referenzpunkt anfahren 2011-01-27
+					printf("G00 Z%.0f\nG00 X%.0f Y%.0f\n", ParkZposition * CNCsolution, ParkXposition * CNCsolution, ParkYposition * CNCsolution);
+                    printf("M05\nM30 Device ende\n");  // referenzpunkt anfahren 2011-01-27
                     break;
   }
   return;
@@ -3123,8 +3133,8 @@ void trueOutlineDraw(string SignalName) {
 // *** the return string to start the ULP rekursiv ***
 string RUN_pass(string run_Pass) {
   string s;
-  sprintf(s, "RUN '%s' '%s' '%.8f' '%.8f' '%.8f' '%d' '%d' '%d' '%d' '%s' '%s' '%.1f' '%.1f' '%.1f' '%d' '%d' '%.8f' '%.8f' '%d' '%.8f' '%d' '%d' '%s' '%d' '%.1f' '%d' '%d' '%d' '%d' '%d' '%d' '%d' '%.8f' '%.8f' '%.8f' '%.8f' '%d' '%.8f' '%d' '%d' '%d';\n",
-                //  0    1    2      3      4      5    6    7    8    9    10   11     12     13     14   15   16     17     18   19     20   21   22   23   24     25   26   27   28   29   30   31   32     33     35     35     36   37     38   39  40
+  sprintf(s, "RUN '%s' '%s' '%.8f' '%.8f' '%.8f' '%d' '%d' '%d' '%d' '%s' '%s' '%.1f' '%.1f' '%.1f' '%d' '%d' '%.8f' '%.8f' '%d' '%.8f' '%d' '%d' '%s' '%d' '%.1f' '%d' '%d' '%d' '%d' '%d' '%d' '%d' '%d'  '%.8f' '%.8f' '%.8f' '%.8f' '%.8f' '%.8f' '%.8f' '%d' '%.8f' '%d' '%d' '%d';\n",
+                //  0    1    2      3      4      5    6    7    8    9    10   11     12     13     14   15   16     17     18   19     20   21   22   23   24     25   26   27   28   29   30   31   32    33     34     35    36      37     38     39     40   41    42   43  44
                 argv[0],
                 Device,                    // argv[1]
                 MillToolOutl,              // argv[2]
@@ -3157,15 +3167,19 @@ string RUN_pass(string run_Pass) {
                 Dim_on_off,                // argv[29]
                 MInner_contour,            // argv[30]
                 CNCmillResolution,         // argv[31]  2011-02-02
-                Mill_z_safety,             // argv[32]  2011-02-03
-                Drill_z_deep,              // argv[33]
-                Z_down,                    // argv[34]
-                Z_dimension,               // argv[35]
-                MillOnlyContour,           // argv[36] 2011-03-10
-                GridDistance,              // argv[37]
-                GridUnit,                  // argv[38]
-                GridUnitdist,              // argv[39] 2013-03-05
-                InitDone                   // argv[40] 2013-04-18
+				Spindle_rpm,			   // argv[32]  2018-05-15
+				Tool_vel,				   // argv[33]  2018-05-15
+				Fast_vel,				   // argv[34]  2018-05-15
+				Drill_Vel,				   // argv[35]  2018-05-15
+                Mill_z_safety,             // argv[36]  2011-02-03
+                Drill_z_deep,              // argv[37]
+                Z_down,                    // argv[38]
+                Z_dimension,               // argv[39]
+                MillOnlyContour,           // argv[40] 2011-03-10
+                GridDistance,              // argv[41]
+                GridUnit,                  // argv[42]
+                GridUnitdist,              // argv[43] 2013-03-05
+                InitDone                   // argv[44] 2013-04-18
         );
   if (test) if (viewtest(" RUN_pass ("+run_Pass+") Returnstring:", s) != 0) exit(-3168);
 
@@ -4213,15 +4227,19 @@ if (argv[1]) {
       Dim_on_off                = strtol(argv[29]);
       MInner_contour            = strtol(argv[30]);
       CNCmillResolution         = strtol(argv[31]);  // 2011-02-02
-      Mill_z_safety             = strtod(argv[32]);
-      Drill_z_deep              = strtod(argv[33]);
-      Z_down                    = strtod(argv[34]);
-      Z_dimension               = strtod(argv[35]);
-      MillOnlyContour           = strtol(argv[36]); // 2011-03-10
-      GridDistance              = strtod(argv[37]);
-      GridUnit                  = strtol(argv[38]);
-      GridUnitdist              = strtol(argv[39]); // 2013-03-05
-      InitDone                  = strtol(argv[40]); // 2013-04-18
+      Spindle_rpm               = strtol(argv[32]);
+      Tool_vel                  = strtod(argv[33]);
+      Fast_vel                  = strtod(argv[34]);
+      Drill_Vel                 = strtod(argv[35]);
+      Mill_z_safety             = strtod(argv[36]);
+      Drill_z_deep              = strtod(argv[37]);
+      Z_down                    = strtod(argv[38]);
+      Z_dimension               = strtod(argv[39]);
+      MillOnlyContour           = strtol(argv[40]); // 2011-03-10
+      GridDistance              = strtod(argv[41]);
+      GridUnit                  = strtol(argv[42]);
+      GridUnitdist              = strtol(argv[43]); // 2013-03-05
+      InitDone                  = strtol(argv[44]); // 2013-04-18
       // check parameters
       if (!SelectedLayer1 && !SelectedLayer16)
          Fatal("Illegal layer: " + argv[5] + " /" + argv[6], "The <i>layer(s) </i> must be 1 or/and 16.");
@@ -5687,4 +5705,3 @@ if (InPassOutmill) {  // ## fourth run, drill holes, milling big holes and milli
     exit(Cmd);
   }
 }
-
