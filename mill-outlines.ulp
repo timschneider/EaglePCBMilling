@@ -1811,25 +1811,25 @@ string getMachineCoordinate( real coord ) {
     string coordString = "";
     switch(CNCmillResolution) {  // 2011-02-02
         case Res32 : CNCsolution = 100;
-             sprintf(coordString, "%05.0f", coord * CNCsolution);
-             break;
+                      sprintf(coordString, "%05.0f", coord * CNCsolution);
+                      break;
         case Res33 : CNCsolution = 1000;
                       sprintf(coordString, "%06.0f", coord * CNCsolution);
-             break;
+                      break;
         case Res34 : CNCsolution = 10000;
                       sprintf(coordString, "%07.0f", coord * CNCsolution);
-             break;
+                      break;
         case Res3_2 : CNCsolution = 1; // 2011-02-03
                       sprintf(coordString, "%05.2f", coord * CNCsolution);
-             break;
+                      break;
         case Res3_3 : CNCsolution = 1;
                       sprintf(coordString, "%06.3f", coord * CNCsolution);
-             break;
+                      break;
         case Res3_4 : CNCsolution = 1;
                       sprintf(coordString, "%07.4f", coord * CNCsolution);
-             break;
+                      break;
     }
-
+    
     return coordString;
 }
 
@@ -1862,7 +1862,7 @@ void endlineCnc( int x2, int y2) {
 }
 
 void fullineCnc( int x1, int y1, int x2, int y2) {
-  printf("G00 X%s Y%s F%.0f\nG01 Z%s F%.0f\nG01 X%s Y%s F%.0f\nG00 Z%s F%.0f\n", 
+  printf("G00 X%s Y%s F%.0f\nG01 Z%s F%.0f\nG01 X%s Y%s F%.0f\nG00 Z%s F%.0f\n",
     getMachineCoordinate(Mirror * u2mm(x1 + Mill_OffsetX) + u2mm(MillMirr_Offset)),
     getMachineCoordinate(u2mm(y1 + Ref_null_offsetY)), Fast_vel * CNCrevolution,
     getMachineCoordinate(Actualmilldeep), Drill_Vel * CNCrevolution,     // Z-Achse eintauchen
@@ -2098,16 +2098,16 @@ void CircleDraw(int centerx, int centery, int diam, real drilldiamround, int dri
     case devCNC:
                     // for CNC  1. Start point arc,
                     //          2. Center point arc
-					printf("G00 X%s Y%s\nG01 Z%s\n",
-							 getMachineCoordinate(Mirror * (u2mm((centerx + diam / 2 - tool_diameter / 2) + Mill_OffsetX)) + u2mm(MillMirr_Offset)),
-							 getMachineCoordinate(u2mm(centery + Ref_null_offsetY)),
-							 getMachineCoordinate(Actualmilldeep)
-						   );
-					 printf("G03 X%s Y%s\nG00 Z%s\n",
-							 getMachineCoordinate(Mirror * u2mm(centerx + Mill_OffsetX) + u2mm(MillMirr_Offset)),
-							 getMachineCoordinate(u2mm(centery + Ref_null_offsetY)),
-							 getMachineCoordinate(Mill_z_safety)
-						   );
+                    printf("G00 X%s Y%s\nG01 Z%s\n",
+                             getMachineCoordinate(Mirror * (u2mm((centerx + diam / 2 - tool_diameter / 2) + Mill_OffsetX)) + u2mm(MillMirr_Offset)),
+                             getMachineCoordinate(u2mm(centery + Ref_null_offsetY)),
+                             getMachineCoordinate(Actualmilldeep)
+                           );
+                     printf("G03 X%s Y%s\nG00 Z%s\n",
+                             getMachineCoordinate(Mirror * u2mm(centerx + Mill_OffsetX) + u2mm(MillMirr_Offset)),
+                             getMachineCoordinate(u2mm(centery + Ref_null_offsetY)),
+                             getMachineCoordinate(Mill_z_safety)
+                           );
 
                     break;
   }
@@ -2258,15 +2258,15 @@ void DeviceDraw(int x1, int y1, int x2, int y2, int state) {
                             break;
 
         case Drill_coord :  
-							printf("G00 X%s Y%s F%.0f\n",
-									 getMachineCoordinate(Mirror * u2mm(x2 + Mill_OffsetX) + u2mm(MillMirr_Offset)),
-									 getMachineCoordinate(u2mm(y2 + Ref_null_offsetY)), Fast_vel * CNCrevolution
-								  );
-							 printf("G01 Z%s F%.0f\nG00 Z%s F%.0f\n",   // langsam Eintauchen, schnell hoch 2011-01-27
-									 getMachineCoordinate(Actualmilldeep), Drill_Vel * CNCrevolution,
-									 getMachineCoordinate(Mill_z_safety), Fast_vel * CNCrevolution
-								   );		 
-							
+                            printf("G00 X%s Y%s F%.0f\n",
+                                     getMachineCoordinate(Mirror * u2mm(x2 + Mill_OffsetX) + u2mm(MillMirr_Offset)),
+                                     getMachineCoordinate(u2mm(y2 + Ref_null_offsetY)), Fast_vel * CNCrevolution
+                                  );
+                             printf("G01 Z%s F%.0f\nG00 Z%s F%.0f\n",   // langsam Eintauchen, schnell hoch 2011-01-27
+                                     getMachineCoordinate(Actualmilldeep), Drill_Vel * CNCrevolution,
+                                     getMachineCoordinate(Mill_z_safety), Fast_vel * CNCrevolution
+                                   );         
+                            
                             break;
 
         case One_line    :  fullineCnc(x1, y1, x2, y2);
@@ -2751,7 +2751,7 @@ void DeviceEnd(void) {
                     break;
 
     case devCNC:
-					printf("G00 Z%.0f\nG00 X%.0f Y%.0f\n", ParkZposition * CNCsolution, ParkXposition * CNCsolution, ParkYposition * CNCsolution);
+                    printf("G00 Z%.0f\nG00 X%.0f Y%.0f\n", ParkZposition * CNCsolution, ParkXposition * CNCsolution, ParkYposition * CNCsolution);
                     printf("M05\nM30 Device ende\n");  // referenzpunkt anfahren 2011-01-27
                     break;
   }
@@ -2905,10 +2905,10 @@ string RUN_pass(string run_Pass) {
                 Dim_on_off,                // argv[29]
                 MInner_contour,            // argv[30]
                 CNCmillResolution,         // argv[31]  2011-02-02
-				Spindle_rpm,			   // argv[32]  2018-05-15
-				Tool_vel,				   // argv[33]  2018-05-15
-				Fast_vel,				   // argv[34]  2018-05-15
-				Drill_Vel,				   // argv[35]  2018-05-15
+                Spindle_rpm,               // argv[32]  2018-05-15
+                Tool_vel,                   // argv[33]  2018-05-15
+                Fast_vel,                   // argv[34]  2018-05-15
+                Drill_Vel,                   // argv[35]  2018-05-15
                 Mill_z_safety,             // argv[36]  2011-02-03
                 Drill_z_deep,              // argv[37]
                 Z_down,                    // argv[38]
@@ -5121,7 +5121,7 @@ if (InPassPour) {  // third run, wide isolate und copper pouring
   string millout;
   string s;
   string coordoutline;
-  Actualmilldeep = Z_down*2; // 2018-05-16 two times milling deep Z Achse
+  Actualmilldeep = Z_down; // 2011-01-27 milling Z Achse
   board(B) {
     real x1 = u2mm(B.area.x1) - MillToolFree/2, y1 = u2mm(B.area.y1) - MillToolFree/2;
     real x2 = u2mm(B.area.x2) + MillToolFree/2, y2 = u2mm(B.area.y2) + MillToolFree/2;
