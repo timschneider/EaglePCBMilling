@@ -2097,18 +2097,21 @@ void CircleDraw(int centerx, int centery, int diam, real drilldiamround, int dri
 
     case devCNC:
                     // for CNC  1. Start point arc,
-                    //          2. Center point arc
+                    //          2. Center point arc incremental
+                    printf(";hole center X%s Y%s R%s\n",
+                             getMachineCoordinate(Mirror * (u2mm((centerx) + Mill_OffsetX)) + u2mm(MillMirr_Offset)),
+                             getMachineCoordinate(u2mm(centery + Ref_null_offsetY)),
+                             getMachineCoordinate(abs((Mirror * u2mm(centerx + Mill_OffsetX) + u2mm(MillMirr_Offset)) - (Mirror * (u2mm((centerx + diam / 2 - tool_diameter / 2) + Mill_OffsetX)) + u2mm(MillMirr_Offset))))
+                    );
                     printf("G00 X%s Y%s\nG01 Z%s\n",
                              getMachineCoordinate(Mirror * (u2mm((centerx + diam / 2 - tool_diameter / 2) + Mill_OffsetX)) + u2mm(MillMirr_Offset)),
                              getMachineCoordinate(u2mm(centery + Ref_null_offsetY)),
                              getMachineCoordinate(Actualmilldeep)
                            );
-                     printf("G03 X%s Y%s\nG00 Z%s\n",
-                             getMachineCoordinate(Mirror * u2mm(centerx + Mill_OffsetX) + u2mm(MillMirr_Offset)),
-                             getMachineCoordinate(u2mm(centery + Ref_null_offsetY)),
+                     printf("G03 I%s J0\nG00 Z%s\n",
+                             getMachineCoordinate(Mirror * ( u2mm(tool_diameter / 2 - diam / 2) ) ),
                              getMachineCoordinate(Mill_z_safety)
                            );
-
                     break;
   }
   return;
@@ -2723,7 +2726,7 @@ void DeviceInit(int tool, int Layer) {
                    printf("G90; absolute mode\n");          // Absolute mode | G91 incremental
                    printf("; Tool table\n");
                    for (n = 1; n < Cnt_tools; n++) {
-                     printf("T%02dD%.1f\n", n, Drill_tools[n]);
+                     printf("T%02dD%.3f\n", n, Drill_tools[n]);
                      // ** defintion T = Tool  D = Diameter **
                    }
                    printf("%%\n");           // end of block / new block
