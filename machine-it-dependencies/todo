@@ -1,0 +1,49 @@
+-Create a header containing all dialogs
+-Create a --recalculate argument to run same process as last time (considering the user modified the board)
+-Create a --undo argument to delete files and folders created
+-Create support to different languages
+-Create process as folowing:
+	1. Write name and observations about this process
+	2. Select board properties:
+		-Single layer
+		-Double layer
+		-Board width
+		-Copper width
+	3. Select milling traces strategy:
+		-Simple milling (fastest)
+		-Contorn mill
+		-Isolation rubout
+		-Complete rubout (slowest)
+	4. Set the milling tool size
+	5. Drilling strategy:
+		-Order to drill: -> implement later
+			-top -> drill
+			-drill -> top
+			-bottom -> drill
+			-drill -> bottom
+			-top -> drill -> bottom
+			-bottom -> drill -> top
+			-top -> bottom -> drill
+			-drill -> top -> bottom
+		-Tools used:
+			-Use a single mill and interpole holes
+			-Use a drillset -> implement later
+			-Use different drills to vias, pads and holes
+	6. Set drills size
+	7. Configure board outline cut
+		-Tool diameter
+		-Gap to support board
+	8. Select machine or create machine
+	9. Finish
+-Create a Machine as folowing:
+	1. Set output file type:
+	2. Select proprierties according to the filetype:
+		-Zero
+		-Number of files (one per step or whole process in single file)
+		-Spinner configuration
+		-Maximum speeds
+		-Tool change position
+		-Board flip position
+		-Command number digits format
+	3. Finish
+-Add a view screen to be executed after user doubleclicks the ListView, it shows all main information about the process if the user doesnt remember

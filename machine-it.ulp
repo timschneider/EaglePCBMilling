@@ -1,0 +1,753 @@
+// *****************************************************************************************************
+// 
+// Created by Gabriel D'Espindula 05 July 2018
+//
+// *****************************************************************************************************
+
+#usage "<b>Wizard to fabricate PCBs under development</b>\n"
+       "<p>"
+       "<author>Author: Gabriel D'Espindula</author>"
+
+#require 7.0200
+
+
+string IMAGES_PATH = "machine-it-dependencies/images";
+string ULP_NAME = "machine_it"; //used to save in eaglerc file
+
+// Global variables to buffer what is the user option----------------------------------------------------
+// This is necessary because the ulp scrip doesn't create classes nether strucs without modifying the xml file(or it does?)
+string process_name = "New process"; //name of the process
+string process_observations = "my observations"; //observations displayed on first window
+int board_type = 0; 	//board_type:
+						//  0 -> single top
+						//  1 -> single bottom
+						//  2 -> double side
+real copper_width = 0.10; //copper_width
+real pcb_width = 0.70; //pcb_width
+int milling_topology = 0; 	//milling_topology:
+							//	0 -> Simple mill
+							//	1 -> Contorn mill
+							//	2 -> Isolation rubout
+							//	3 -> Complete rubout
+real end_mill = 0.40;
+real rubout_mill = 0.70;
+int overlap_isolation = 20;
+int overlap_rubout = 20;
+int drilling_topology = 0;	//drilling_topology:
+							//	0 -> Interpolate holes
+							//	1 -> Drillset
+real drilling_mill = 0.70;
+real pad_drill = 0.8;	//pad_drill
+real via_drill = 0.8;	//via_drill
+real holes_drill = 0.8;	//holes_drill
+real outilne_mill = 2.0;	//mill bit to cut the outline
+real outline_spacer = 10.0;	//the space to keep the board fixed after milling
+
+int process_index = 0; // variable that stores which process where selected by the user
+
+// Inform which machine was excluded----------------------------------------------------------------------
+int dlgExcludeProcess(int exclude_index){
+	string processes[];
+	string process_variables[];
+	string aux;
+	string saved_processes = cfgget(ULP_NAME+".saved"); //verify if there is string!
+	string save = "";
+	int actual_index = (strsplit(processes, saved_processes, '\v')-2);
+
+	for( int i = 0 ; i<=actual_index; i++){ //create new vector to be saved, without the process that was excluded
+		if(i != exclude_index) //save all but the excluded
+			save = save + processes[i] + '\v';
+	}
+	cfgset(ULP_NAME+".saved", save); //save new vector without entry
+
+	//strsplit(process_variables, processes[exclude_index], ';'); //retrieve the data of the excluded entry from volatile memory
+	//sprintf(aux, "The process %s was excluded.", process_variables[0]); //print name of the data entry excluded
+	//dlgMessageBox(aux);
+
+	process_index=0;//set selected process at the first window to zero again.
+	return 1;
+}
+
+// Open the same state machine as add, but retrieve data from this specific process first-----------------
+int dlgEditProcess(){
+	dlgMessageBox("Starts editing");
+	return 1;
+}
+void retrieveDetails(int index){
+	string processes[];
+	string details[];
+	string saved_processes = cfgget(ULP_NAME+".saved"); //verify if there is string!
+	string message = "";
+
+	strsplit(processes, saved_processes, '\v');
+	strsplit(details, processes[process_index], ';');
+
+	process_name = details[0];
+	process_observations = details[1];
+	//detais 2 is the time and it will always update when saving
+	board_type = strtol(details[3]);
+	copper_width =  strtod(details[4]);
+	pcb_width = strtod(details[5]);
+	milling_topology = strtol(details[6]);
+	end_mill = strtod(details[7]);
+	rubout_mill = strtod(details[8]);
+	overlap_isolation = strtol(details[9]);
+	overlap_rubout = strtol(details[10]);
+	drilling_topology = strtol(details[11]);
+	drilling_mill = strtod(details[12]);
+	pad_drill = strtod(details[13]);
+	via_drill = strtod(details[14]);
+	holes_drill = strtod(details[15]);
+	outilne_mill = strtod(details[16]);	//mill bit to cut the outline
+	outline_spacer = strtod(details[17]);	//the space to keep the board fixed after milling
+}
+
+// Quick view of process detailed information-------------------------------------------------------------
+int dlgViewProcess(){
+	string processes[];
+	string details[];
+	string saved_processes = cfgget(ULP_NAME+".saved"); //verify if there is string!
+	string message = "";
+
+	strsplit(processes, saved_processes, '\v');
+	strsplit(details, processes[process_index], ';');
+	/*
+	index 0 -> process_name
+	index 1 -> process_observations //observations displayed on first window
+	index 3 -> board_type	//board_type:
+							//  0 -> single top
+							//  1 -> single bottom
+							//  2 -> double side
+	index 4 -> copper_width //copper_width
+	index 5 -> pcb_width //pcb_width
+	index 6 -> milling_topology //milling_topology:
+								//	0 -> Simple mill
+								//	1 -> Contorn mill
+								//	2 -> Isolation rubout
+								//	3 -> Complete rubout
+	index 7 -> end_mill
+	index 8 -> rubout_mill
+	index 9 -> overlap_isolation
+	index 10 -> overlap_rubout
+	index 11 -> drilling_topology//drilling_topology:
+								//	0 -> Interpolate holes
+								//	1 -> Drillset
+	index 12 -> drilling_mill
+	index 13 -> pad_drill//pad_drill
+	index 14 -> via_drill//via_drill
+	index 15 -> holes_drill//holes_drill
+	index 16 -> outilne_mill//mill bit to cut the outline
+	index 17 -> outline_spacer//the space to keep the board fixed after milling
+	*/
+	switch(details[3][0]){ //decode values for board type
+		case '0': details[3] = "Top Layer";break;
+		case '1': details[3] = "Bottom Layer";break;
+		case '2': details[3] = "Double face";break;
+	}
+	details[4] = details[4] + "mm";
+	details[5] = details[5] + "mm";
+	switch(details[6][0]){ //decode values for milling topology
+		case '0': 	details[6] = "Simple mill";
+					details[8] = "none";
+					details[9] = "none";
+					details[10] = "none";
+					break;
+		case '1': 	details[6] = "Contorn mill";
+					details[8] = "none";
+					details[9] = "none";
+					details[10] = "none";
+					break;
+		case '2': 	details[6] = "Isolation rubout";
+					details[8] = details[7] + "mm";
+					details[9] = details[8] + "%";
+					details[10] = "none";
+					break;
+		case '3': 	details[6] = "Complete rubout";
+					details[8] = details[7] + "mm";
+					details[9] = details[8] + "%";
+					details[10] = details[9] + "%";
+					break;
+	}
+	details[7] = details[7] + "mm";
+	switch(details[11][0]){ //decode values for milling topology
+		case '0': 	details[11] = "Interpolate holes";
+					details[12] = details[11] + "mm";
+					details[13] = "none";
+					details[14] = "none";
+					details[15] = "none";
+					break;
+		case '1': 	details[11] = "Drillset";
+					details[12] = "none";
+					details[13] = details[12] + "mm";
+					details[14] = details[13] + "mm";
+					details[15] = details[14] + "mm";
+					break;
+	}
+	details[16] = details[16] + "mm";
+	details[17] = details[17] + "mm";
+	sprintf(message,"\
+	Name = %s\n\
+	Observation = %s\n\
+	Board type = %s\n\
+	Copper width = %s\n\
+	PCB width = %s\n\
+	Milling topology = %s\n\
+	End mill = %s\n\
+	Rubout mill = %s\n\
+	Overlap isolation = %s\n\
+	Overlap rubout = %s\n\
+	Drilling topology = %s\n\
+	Drilling mill = %s\n\
+	Pad drill = %s\n\
+	Via drill = %s\n\
+	Holes drill = %s\n\
+	Outline mill = %s\n\
+	Outline spacer = %s\n"
+	,details[0], details[1], details[3], details[4], details[5], details[6], details[7], details[8], details[9], details[10], details[11], details[12], details[13], details[14], details[15], details[16], details[17]);
+	dlgMessageBox(message);
+	return 1;
+}
+
+// Here shoud run the program to generate all files-------------------------------------------------------
+int generateFiles(){
+	dlgMessageBox("Here the code runs and create the output files");
+	return 1;
+}
+
+// Read all process saved so far and return an information string about all currently stored process---------------
+string retrieveProcessesInformation(){
+	string processes[];
+	string single_process[];
+	string saved_processes = cfgget(ULP_NAME+".saved"); //verify if there is string!
+	string information = ""; // Informations sown at the first window "Name\Layer\Output File\Last modified\Observations"
+	string layer;
+
+	//the result i will have one more entry than the real number, 
+	//because every time we save we write '\v' at the end, 
+	//thats the reason to add "-i" after spliting the string
+	int datasize = strsplit(processes, saved_processes, '\v')-2;
+
+	for( int i = 0; i<=datasize; i++){ //save all memory entries into volatile variables
+
+		//split single processes to know individual data of each process
+		strsplit(single_process, processes[i], ';');
+
+		//create machine vector, used to display all saved processes at the dlgChooseProcess
+		// address 0 -> Name
+		// address 0 -> Layer
+		// address 0 -> Output File
+		// address 2 -> Last modified (date it was saved)
+		// address 1 -> Observations
+		switch (single_process[3][0]){ //decode the layer saved
+			case '0': layer = "Top"; break;
+			case '1': layer = "Bottom"; break;
+			case '2': layer = "Double side"; break;
+		}
+		information = information + single_process[0] + '\t' + layer + '\t'+ " " + '\t'+ single_process[2] + '\t' + single_process[1];
+		if(i<datasize) information = information + '\n'; //add a new line in all cases but the last
+	}
+	return information;
+}
+
+// Save a new process reading the eaglerc file and adding a new entry--------------------------------------------------
+// Data origined from user entry as filretless string need to be filtered, not implemented yet
+void saveNewProcess(int index){
+	int t = time();
+	string convert;
+	string processes[];
+	string saved_processes = cfgget(ULP_NAME+".saved"); //verify if there is string!
+	
+	//delete ';' and '/v' to avoid user entry problems
+	// '\v' is the separator for full process
+	// ';' is the separator for 
+	//Change name if it's a duplicate name
+
+	sprintf(convert, "%s;%s;%s;%d;%.02f;%.02f;%d;%.02f;%.02f;%d;%d;%d;%.02f;%.02f;%.02f;%.02f;%.02f;%.02f",process_name, process_observations, t2string(t, "dd-MMM-yyyy hh:mm:ss"),board_type,copper_width,pcb_width,milling_topology,end_mill,rubout_mill,overlap_isolation,overlap_rubout,drilling_topology,drilling_mill,pad_drill,via_drill,holes_drill,outilne_mill,outline_spacer);
+
+	if(index == -1){
+		cfgset(ULP_NAME+".saved", saved_processes + convert + '\v');
+	}
+	else{
+		strsplit(processes, saved_processes, '\v');
+		processes[index] = convert;
+		saved_processes = strjoin(processes, '\v');
+		cfgset(ULP_NAME+".saved", saved_processes);
+	}
+}
+
+// Create process step 7----------------------------------------------------------------------------------
+// Configure the mill size and space gap to cut outline
+int dlgOutlineStrategy(int index){
+	string image;
+	string image_diameter = "<img src="+IMAGES_PATH+"/mill-outlines-mildimension.bmp>";
+	string image_spacer = "<img src="+IMAGES_PATH+"/mill-outlines-spacing.bmp>";
+
+	int window = dlgDialog("Step 7 of 7: Set the outline milling") {
+		dlgLabel("To properly cut your outline, configure the following:");
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgGroup("Configure the diameter and space [mm]:") {
+			dlgGridLayout {
+				dlgCell(0, 0) {dlgStretch(1);dlgLabel("Mill bit diameter:");dlgStretch(1);}
+				dlgCell(1, 0) {dlgStretch(1);dlgRealEdit(outilne_mill, 0.00, 5.00); dlgLabel("mm");dlgStretch(1);}
+				dlgCell(2, 0) {dlgStretch(1); dlgLabel(image_diameter); dlgStretch(1); }
+
+				dlgCell(0, 1) {dlgStretch(1);dlgLabel("Space to avoid the board to completely cut:");dlgStretch(1);}
+				dlgCell(1, 1) {dlgStretch(1);dlgRealEdit(outline_spacer, 0.00, 20.00); dlgLabel("mm");dlgStretch(1);}
+				dlgCell(2, 1) {dlgStretch(1); dlgLabel(image_spacer); dlgStretch(1);}
+			}
+		}
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgHBoxLayout {
+			dlgPushButton("Back"){ dlgAccept(8);}  //return 3 to go to back to step 1
+			dlgStretch(1);
+			dlgPushButton("+Finish"){ dlgAccept(1); saveNewProcess(index);}
+			dlgPushButton("-Cancel") dlgReject(0);
+		}
+	};
+	//return window;
+	return 0; //to close wizard after finishing it
+}
+
+// Create process step 6 - Option drill set---------------------------------------------------------------
+// Ask what are the drills
+int dlgSetDrill(){
+	string image = "<img src="+IMAGES_PATH+"/drill-set.bmp>";
+	
+	int window = dlgDialog("Step 6 of 7: Set the drills") {
+		dlgLabel("You selected drill toolset:");
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgHBoxLayout {
+			dlgGroup("Set the diameter of your tool(s) [mm]") {
+				dlgGridLayout {
+					dlgCell(0, 0) dlgLabel("Drilling pads:");
+					dlgCell(0, 1) {dlgRealEdit(pad_drill, 0.00, 9.00); dlgLabel("mm");dlgStretch(1);}
+					dlgCell(1, 0) dlgLabel("Drilling vias:");
+					dlgCell(1, 1) {dlgRealEdit(via_drill, 0.00, 9.00); dlgLabel("mm");dlgStretch(1);}
+					dlgCell(2, 0) dlgLabel("Drilling single holes:");
+					dlgCell(2, 1) {dlgRealEdit(holes_drill, 0.00, 9.00); dlgLabel("mm");dlgStretch(1);}
+				}
+			}
+			dlgStretch(1);
+			dlgLabel(image, 1);
+			dlgStretch(1);
+		}
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgHBoxLayout {
+			dlgPushButton("Back"){ dlgAccept(5);}  //return 4 to go to back to step 4
+			dlgStretch(1);
+			dlgPushButton("+Next"){ dlgAccept(7);}
+			dlgPushButton("-Cancel") dlgReject(0);
+		}
+	};
+	return window;
+}
+
+// Create process step 6 - Option mill interpolation------------------------------------------------------
+// Select the mill tool for rubout
+int dlgSetDillingMill(){
+	
+	int window = dlgDialog("Step 6 of 7: Set the milling tool size") {
+		dlgLabel("You selected interpolated holes:");
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgHBoxLayout {
+			dlgGroup("Set the diameter of your tool(s) [mm]") {
+				dlgGridLayout {
+					dlgCell(0, 0) dlgLabel("Endmill tool:");
+					dlgCell(0, 1) {dlgRealEdit(drilling_mill, 0.00, 9.00); dlgLabel("mm");dlgStretch(1);}
+				}
+			}
+			dlgStretch(1);
+			dlgLabel("<img src="+IMAGES_PATH+"/interpolated-hole.bmp>");
+			dlgStretch(1);
+		}
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgHBoxLayout {
+			dlgPushButton("Back"){ dlgAccept(5);}  //return 3 to go to back to step 1
+			dlgStretch(1);
+			dlgPushButton("+Next"){ dlgAccept(7);}
+			dlgPushButton("-Cancel") dlgReject(0);
+		}
+	};
+	return window;
+}
+
+// Create process step 5----------------------------------------------------------------------------------
+// Ask to the user the strategy for drilling
+int dlgDrillingStrategy(){
+
+	string image;
+
+	switch(drilling_topology){ //This is necessary if the iser cames back and foward, to assume the first image
+		case 0: {image = "<img src="+IMAGES_PATH+"/interpolated-hole.bmp>";break;}
+		case 1: {image = "<img src="+IMAGES_PATH+"/drill-set.bmp>";break;}
+	}
+
+	int window = dlgDialog("Step 5 of 7: Milling traces strategy") {
+		dlgHBoxLayout {
+			dlgLabel("Set your drilling method according to the following options:");
+			dlgSpacing(100);
+		}
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgHBoxLayout {
+			dlgGroup("What will be your milling strategy?") {
+				dlgRadioButton("Interpolate holes using a milling bit to do all work", drilling_topology){ 
+					image = "<img src="+IMAGES_PATH+"/interpolated-hole.bmp>";
+					dlgRedisplay();
+				}
+				dlgRadioButton("Use actual drills instead of milling bits, it will \nallow to select three sizes, one for pads, other for \nvias and finally a third to single holes", drilling_topology){ 
+					image = "<img src="+IMAGES_PATH+"/drill-set.bmp>";
+					dlgRedisplay();
+				}
+			}
+			dlgStretch(1);
+			dlgLabel(image, 1); //parameter one means this label can update.
+			dlgStretch(1);
+		}
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgHBoxLayout {
+			dlgPushButton("Back"){ dlgAccept(4);}  //return 4 to go to back to step 4
+			dlgStretch(1);
+			dlgPushButton("+Next"){ dlgAccept(6);}
+			dlgPushButton("-Cancel") dlgReject(0);
+		}
+	};
+	return window;
+}
+
+// Create process step 4----------------------------------------------------------------------------------
+// Argument selected define if there is only one endmill or an endmill plus a rubout
+// selected = 0 -> Simple mill
+// selected = 1 -> Contorn mill
+// selected = 2 -> Isolation rubout
+// selected = 3 -> Complete rubout
+// Ask to the user the layer and toolset for endmilling process
+int dlgSetEndmill(int selected){
+	string image;
+	string image_ovlp_isolation = "<img src="+IMAGES_PATH+"/mill-outlines-ovrlpfp.bmp>";
+	string image_ovlp_rubout = "<img src="+IMAGES_PATH+"/mill-outlines-ovrlppp.bmp>";
+	string mode;
+
+	switch(selected){
+		case 0:	image = "<img src="+IMAGES_PATH+"/mill-outlines-inner-polygon-contour.bmp>";
+				mode = "simple mill";
+				break;
+		case 1:	image = "<img src="+IMAGES_PATH+"/mill-outlines-inner-polygon-contour1.bmp>";
+				mode = "contorn mill";
+				break;
+		case 2:	image = "<img src="+IMAGES_PATH+"/mill-outlines-sec-isolate.bmp>";
+				mode = "isolation rubout";
+				break;
+		case 3:	image = "<img src="+IMAGES_PATH+"/mill-outlines-pour.bmp>";
+				mode = "complete rubout";
+				break;
+	}
+	
+	int window = dlgDialog("Step 4 of 7: Set the milling tool size") {
+		dlgLabel("You selected "+mode+".");
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgHBoxLayout {
+			dlgGroup("Set the diameter of your tool(s) [mm]") {
+				dlgGridLayout {
+					dlgCell(0, 0) dlgLabel("Endmill tool:");
+					dlgCell(0, 1) {dlgRealEdit(end_mill, 0.00, 9.00); dlgLabel("mm");dlgStretch(1);}
+					if(selected > 1){
+						dlgCell(1, 0) dlgLabel("Cutting and drilling tool:");
+						dlgCell(1, 1) {dlgRealEdit(rubout_mill, 0.00, 9.00);dlgLabel("mm");dlgStretch(1);}
+					}
+				}
+			}
+			dlgStretch(1);
+			dlgLabel(image, 1);
+			dlgStretch(1);
+		}
+		dlgSpacing(10);
+		dlgStretch(1);
+		if(selected > 1){
+			dlgGroup("Configure the overlap [%]:") {
+				dlgGridLayout {
+					dlgCell(0, 0) {dlgStretch(1);dlgLabel("Overlap when milling the isolation:");dlgStretch(1);}
+					dlgCell(1, 0) {dlgStretch(1);dlgIntEdit(overlap_isolation, 0, 99); dlgLabel("%");dlgStretch(1);}
+					dlgCell(2, 0) {dlgStretch(1); dlgLabel(image_ovlp_isolation, 1); dlgStretch(1); }
+					if(selected > 2){
+						dlgCell(0, 1) {dlgStretch(1);dlgLabel("Overlap when milling the rubout:");dlgStretch(1);}
+						dlgCell(1, 1) {dlgStretch(1);dlgIntEdit(overlap_rubout, 0, 99); dlgLabel("%");dlgStretch(1);}
+						dlgCell(2, 1) {dlgStretch(1); dlgLabel(image_ovlp_rubout, 1); dlgStretch(1);}
+					}
+				}
+			}
+		}
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgHBoxLayout {
+			dlgPushButton("Back"){ dlgAccept(3);}  //return 3 to go to back to step 1
+			dlgStretch(1);
+			dlgPushButton("+Next"){ dlgAccept(5);}
+			dlgPushButton("-Cancel") dlgReject(0);
+		}
+	};
+	return window;
+}
+
+// Create process step 3----------------------------------------------------------------------------------
+// Ask to the user about rubout and other options
+int dlgMillingTracesStrategy(){	
+
+	string image;
+
+	switch(milling_topology){ //This is necessary if the iser cames back and foward, to assume the first image
+		case 0: {image = "<img src="+IMAGES_PATH+"/mill-outlines-inner-polygon-contour.bmp>";break;}
+		case 1: {image = "<img src="+IMAGES_PATH+"/mill-outlines-inner-polygon-contour1.bmp>";break;}
+		case 2: {image = "<img src="+IMAGES_PATH+"/mill-outlines-sec-isolate.bmp>";break;}
+		case 3: {image = "<img src="+IMAGES_PATH+"/mill-outlines-pour.bmp>";break;}
+	}
+
+	int window = dlgDialog("Step 3 of 7: Milling traces strategy") {
+		dlgHBoxLayout {
+			dlgLabel("Select your milling strategy according to the following options:");
+			dlgSpacing(100);
+		}
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgHBoxLayout {
+			dlgGroup("What will be your milling strategy?") {
+				dlgRadioButton("Simple milling - fastest", milling_topology){ 
+					image = "<img src="+IMAGES_PATH+"/mill-outlines-inner-polygon-contour.bmp>";
+					dlgRedisplay();
+				}
+				dlgRadioButton("Contorn mill", milling_topology){ 
+					image = "<img src="+IMAGES_PATH+"/mill-outlines-inner-polygon-contour1.bmp>";
+					dlgRedisplay();
+				}
+				dlgRadioButton("Isolation rubout", milling_topology){ 
+					image = "<img src="+IMAGES_PATH+"/mill-outlines-sec-isolate.bmp>";
+					dlgRedisplay();
+				}
+				dlgRadioButton("Complete rubout - slowest", milling_topology){ 
+					image = "<img src="+IMAGES_PATH+"/mill-outlines-pour.bmp>";
+					dlgRedisplay();
+				}
+			}
+			dlgStretch(1);
+			dlgLabel(image, 1); //parameter one means this label can update.
+			dlgStretch(1);
+		}
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgHBoxLayout {
+			dlgPushButton("Back"){ dlgAccept(2);}
+			dlgStretch(1);
+			dlgPushButton("+Next"){ dlgAccept(4);}
+			dlgPushButton("-Cancel") dlgReject(0);
+		}
+	};
+	return window;
+}
+
+// Create process step 2----------------------------------------------------------------------------------
+// Set which layer want to mill and what are the rought board dimensions
+int dlgBoardProperties(){
+	
+	string note1;
+	string image;
+
+	switch(board_type){ //This is necessary if the iser cames back and foward, to assume the first image
+		case 0: {image = "<img src="+IMAGES_PATH+"/single-top.bmp>";break;}
+		case 1: {image = "<img src="+IMAGES_PATH+"/single-bottom.bmp>";break;}
+		case 2: {image = "<img src="+IMAGES_PATH+"/double-sided.bmp>";break;}
+	}
+
+	int window = dlgDialog("Step 2 of 7: Board properties") {
+		dlgHBoxLayout {
+			dlgLabel("Select what kind of board you're willing to mill, as well as it's dimensions:");
+			dlgSpacing(100);
+		}
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgGroup("Which layer you want to mill?") {
+			dlgRadioButton("Single layer on top - if you routed only in red", board_type){ 
+				image = "<img src="+IMAGES_PATH+"/single-top.bmp>";
+				note1 = "";
+				dlgRedisplay();
+			}
+			dlgRadioButton("Single layer on bottom - if you routed only in blue", board_type){ 
+				image = "<img src="+IMAGES_PATH+"/single-bottom.bmp>";
+				note1 = "";
+				dlgRedisplay();
+			}
+			dlgRadioButton("Double sided - if you routed in both red and blue", board_type){ 
+				image = "<img src="+IMAGES_PATH+"/double-sided.bmp>";
+				note1 = "*Both sides have the same width [b]";
+				dlgRedisplay();
+			}
+			dlgLabel(image, 1); //parameter one means this label can update.
+		}
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgGroup("Set the size of your rought board (mm)") {
+			dlgHBoxLayout {
+				dlgGridLayout {
+					dlgCell(0, 0) dlgLabel("Board width [a]:");
+					dlgCell(0, 1) dlgRealEdit(pcb_width , 0.00, 9.00);
+					dlgCell(1, 0) dlgLabel("Copper width[b]:");
+					dlgCell(1, 1) dlgRealEdit(copper_width , 0.00, 9.00);
+					dlgCell(1, 3) dlgLabel(note1, 1); //parameter one means this label can update.
+				}
+				dlgStretch(1);
+			}
+		}
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgHBoxLayout {
+			dlgPushButton("Back"){ dlgAccept(1);}  //return 3 to go to back to step 1
+			dlgStretch(1);
+			dlgPushButton("+Next"){ dlgAccept(3);}  //return 3 to go to step 3
+			dlgPushButton("-Cancel") dlgReject(0);
+		}
+	};
+	return window;
+}
+
+// Create process step 1----------------------------------------------------------------------------------
+// Welcome message and requests new name and observations
+int dlgAddProcess(){	
+	int window = dlgDialog("Step 1 of 7: Creating a new process") {
+		dlgLabel("Welcome to your PCB making process wizard!");
+		dlgSpacing(5);
+
+		dlgLabel(	"Here you'll configure how you'd like to create your fabrication \nfiles, which layer, what kind of tools and so on. Later on you'll \nbe able to easily execute your previously setted process. \nYou can also create one process for each situation, for instance one \nwithout rubout to be faster or another only using a top Layer.\nSomething also very interesting is selecting your toolset based on \nyour actual stock.\nHave fun!");
+
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgLabel("What is the name of this new process?");
+		dlgStringEdit(process_name);
+		dlgSpacing(10);
+		dlgStretch(1);
+
+		dlgLabel("Do you have any observations to highlight about this new process? \n* This observations will be seing from the process selection \nwindow, as soon as you execute this ulp");
+
+		dlgStringEdit(process_observations);
+		dlgSpacing(10);
+		dlgStretch(1);
+		dlgHBoxLayout {
+			dlgStretch(1);
+			dlgPushButton("+Next") dlgAccept(2); //return 2 to go to step 2
+			dlgPushButton("-Cancel") dlgReject(0);
+		}
+	};
+	return window;
+}
+
+// Create process state machine, navigate through menus
+// This function was only necessary because the language doesn't allow declaring only the functions
+// state = 0 ->	get out of creation wizard
+// state = 1 ->	Welcome message and requests new name and observations
+// state = 2 ->	Set which layer want to mill and what are the rought board dimensions
+// state = 3 ->	Ask to the user about rubout and other options
+// state = 4 ->	Ask to the user the layer and toolset for endmilling process
+// state = 5 ->	Ask to the user the strategy for drilling
+// state = 6 ->	Ask what are the drills
+// State machine to navigate throug New process windows---------------------------------------------------------------
+int dlgNewProcess(int index){ //index to be edited or -1 to create a new process
+	int state=1;
+
+	if(index == -1){//Clean all process varialbes to default value
+		process_name = "My new Process";
+		process_observations = "Best process for my PCBs, made today";
+		board_type = 1;
+		copper_width = 0.10;
+		pcb_width = 0.70;
+		milling_topology = 0;
+		end_mill = 0.40;
+		rubout_mill = 0.70;
+		overlap_isolation = 20;
+		overlap_rubout = 20;
+		drilling_topology = 0;
+		drilling_mill = 0.70;
+		pad_drill = 0.8;
+		via_drill = 0.8;
+		holes_drill = 0.8;
+		outilne_mill = 2.0;	//mill bit to cut the outline
+		outline_spacer = 10.0;	//the space to keep the board fixed after milling
+	}
+	else{
+		retrieveDetails(index);
+	}
+
+	while(state){
+		switch(state){
+			case 1:	{state = dlgAddProcess();break;}
+			case 2:	{state = dlgBoardProperties();break;}
+			case 3:	{state = dlgMillingTracesStrategy(); break;}
+			case 4: {state = dlgSetEndmill(milling_topology); break;}
+			case 5: {state = dlgDrillingStrategy();break;}
+			case 6: {
+						if(drilling_topology == 0)	state = dlgSetDillingMill();
+						else state = dlgSetDrill();
+						break;
+					}
+			case 7:	{state = dlgOutlineStrategy(index); break;}
+			case 0: {state = 0; break;}
+		}
+	}
+	return 1;
+}
+
+// Ask to the user what is the machine
+int dlgChooseProcess(){
+	string info[];
+	string aux[];
+
+	strsplit(info,retrieveProcessesInformation(),'\n');
+
+	int window = dlgDialog("Let's prototype this board!") {
+		dlgHBoxLayout {
+			dlgLabel("Select the process you want to use:");
+			dlgSpacing(80);
+		}
+		dlgListView("Name\tLayer\tOutput File\tLast modified\tObservations", info, process_index){ dlgAccept(1); dlgViewProcess();} //3 means it will sotr by date as default
+		dlgHBoxLayout {
+			dlgPushButton("Exclude"){ 
+				strsplit(aux, info[process_index], '\t');
+				if(dlgMessageBox("Are you sure to delete " + aux[0] +"?", "Yes", "No") == 0) //print a confirmation message containing the process name
+					dlgAccept(4);
+				else
+					dlgAccept(1);
+			}
+			dlgPushButton("Edit"){ dlgAccept(5);}
+			dlgPushButton("Add"){ dlgAccept(3);}
+			dlgSpacing(80);
+			dlgPushButton("+Run"){ dlgAccept(2);}
+			dlgPushButton("-Cancel") dlgReject(0);
+		}
+	};
+	return window;
+}
+
+//Has the main state machine
+// state = 0 ->	get out of ulp
+// state = 1 ->	Choose process screen
+// state = 2 ->	Generate output files
+// state = 3 ->	Add process
+// state = 4 ->	Exclude entry
+// state = 5 ->	Edit mode
+void main(){
+	int state=1;
+	while(state){
+		switch(state){
+			case 1:	state = dlgChooseProcess(); break;
+			case 2:	state = generateFiles(); break;
+			case 3:	state = dlgNewProcess(-1); break; //-1 means a new process with default data
+			case 4: state = dlgExcludeProcess(process_index); break;
+			case 5: state = dlgNewProcess(process_index); break;
+		}
+	}
+}
