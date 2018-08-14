@@ -719,6 +719,7 @@ real   Z_down               = -2.0;   // cutting depth for z-axis
 real   Actualmilldeep;                // 2011-01-27 in den Funktionen wird nur die aktuelle Frästiefe benutzt
 int    Spindle_rpm          = 15000;  // spindle rotation per minute
 real   Tool_vel             = 2;      // cutting speed
+real   TmpTool_vel          = 2;
 real   Fast_vel             = 5;      // fast move for tool
 real   Drill_Vel            = 0.5;    // drilling speed 
 real   ParkZposition        = 80.0;   // 80mm parking position to turn pcb for 2nd side milling
@@ -2247,6 +2248,10 @@ void DeviceDraw(int x1, int y1, int x2, int y2, int state) {
       break;
 
     case devCNC:
+	  if (InPassOutmill) { // reduce outmill speed by 50%
+	     TmpTool_vel = Tool_vel;
+         Tool_vel = Tool_vel / 2.0;
+	  }
       switch (state) {
         case First_line  :  if (InPassOutmill) checkBridge(x1, y1, x2, y2, state);
                             else startlineCnc(x1, y1, x2, y2);
@@ -2274,6 +2279,9 @@ void DeviceDraw(int x1, int y1, int x2, int y2, int state) {
 
         case One_line    :  fullineCnc(x1, y1, x2, y2);
                             break;
+      }
+	  if (InPassOutmill) {
+	     Tool_vel = TmpTool_vel;
       }
       break;
   }
@@ -2507,6 +2515,7 @@ void output_drills(string s) {
   sort(Cnt_ncdrill, Dindex, Nc_drilldround, Nc_drillx, Nc_drilly);
   int n;
   int Tcode = -1;
+  int HolesPerDiam = 0;
   real new_drill = -1;
   switch (SelectedDevice) {
     case devScript: if (s) printf("# Layer 145 Mil_sDrill; # Gesamt %d %s\n", Cnt_ncdrill, s);
@@ -2524,6 +2533,9 @@ void output_drills(string s) {
 
   for (n = 0; n < Cnt_ncdrill; n++) {
     if (Nc_drilldround[Dindex[n]] != new_drill) {
+	  if (Tcode > false && n > 0) {
+	     printf("; %d Holes for %.2f\n", HolesPerDiam, Nc_drilldround[Dindex[n-1]]);
+	  }
       new_drill = Nc_drilldround[Dindex[n]];
       Tcode = get_tool(new_drill);
       if (Tcode > false) {
@@ -2533,8 +2545,10 @@ void output_drills(string s) {
           if (test2) printf("#2784");
           DeviceReInit(Tcode, 45, "2785");  // the Hole layer
         }
+		HolesPerDiam = 0;
       }
     }
+	HolesPerDiam++;
     if (Tcode == nrMaxDrillDiameter) { // T-Code 9 ist fräsen
 
       switch (SelectedDevice) {
@@ -2764,8 +2778,10 @@ void DeviceEnd(void) {
 
 // *** generate HOLES with short way ***
 void WriteHoles(int Layer) {
-  board(B) get_holes(B);
-  output_drills("; Holes");
+  if (Generatedrills) {
+    board(B) get_holes(B);
+    output_drills("; Holes");
+  }
   return;
 }
 
