@@ -226,7 +226,7 @@ Scalierung bei HPGL vorwahl 2/5/10
 ** */
 
 string Version = "Version 6.2.3";   // 2016-06-07 support@cadsoft.de
-
+string DEPENDENCIES = "mill-outlines-dependencies";
 string Header  = "Outlines generator for PCB milling.";
 
 int test = 0;    // Flag zum debuggen
@@ -3847,7 +3847,7 @@ void layer_info(void) {
     Infotext = INFOtext1_on + "<p>" + INFOtext16_on;
   }
   else if (!SelectedLayer1 && !SelectedLayer16) {
-    info = "<img src=\"mill-outlines-question.bmp\">";
+    info = "<img src="+ DEPENDENCIES +"/mill-outlines-question.bmp>";
     Infotext = "Kein Layer gew&auml;hlt!";
   }
   else if (SelectedLayer1 && !SelectedLayer16) {
@@ -4200,46 +4200,46 @@ if ( !InPass2 && !InPassPour && !InPassOutmill && !InPassDimensionPoly) {
         if (fault) exit("CLASS");
       }
 
-      Showpic[0]  = "<img src=\"mill-outlines-eagle.bmp\">";
-      Showpic[1]  = "<img src=\"mill-outlines-free.bmp\">";
-      Showpic[2]  = "<img src=\"mill-outlines-ovrlpfp.bmp\">";
-      Showpic[3]  = "<img src=\"mill-outlines-pour.bmp\">";
-      Showpic[4]  = "<img src=\"mill-outlines-ovrlppp.bmp\">";
-      Showpic[5]  = "<img src=\"mill-outlines-drill.bmp\">";
-      Showpic[6]  = "<img src=\"mill-outlines-via.bmp\">";
-      Showpic[7]  = "<img src=\"mill-outlines-hole.bmp\">";
-      Showpic[8]  = "<img src=\"mill-outlines-top.bmp\">";
-      Showpic[9]  = "<img src=\"mill-outlines-bott.bmp\">";
-      Showpic[10] = "<img src=\"mill-outlines-coppdim.bmp\">";
-      Showpic[11] = "<img src=\"mill-outlines-nomir.bmp\">";
-      Showpic[12] = "<img src=\"mill-outlines-mirror.bmp\">";
-      Showpic[13] = "<img src=\"mill-outlines-script.bmp\">";
-      Showpic[14] = "<img src=\"mill-outlines-hpgl.bmp\">";
-      Showpic[15] = "<img src=\"mill-outlines-spacing.bmp\">";
-      Showpic[16] = "<img src=\"mill-outlines-mildimension.bmp\">";
-      Showpic[17] = "<img src=\"mill-outlines-null_reference.bmp\">";
-      Showpic[18] = "<img src=\"mill-outlines-isol-pour.bmp\">";
-      Showpic[19] = "<img src=\"mill-outlines-sec-isol.bmp\">";
-      Showpic[20] = "<img src=\"mill-outlines-sec-isolate.bmp\">";
-      Showpic[21] = "<img src=\"mill-outlines-question.bmp\">";
-      Showpic[22] = "<img src=\"mill-outlines-inside-milling.bmp\">";
-      Showpic[23] = "<img src=\"mill-outlines-isel.bmp\">";
-      Showpic[24] = "<img src=\"mill-outlines-cnc.bmp\">";
-      Showpic[25] = "<img src=\"mill-outlines-cnc-safety.bmp\">";
-      Showpic[26] = "<img src=\"mill-outlines-cnc-drill-down.bmp\">";
-      Showpic[27] = "<img src=\"mill-outlines-cnc-up.bmp\">";
-      Showpic[28] = "<img src=\"mill-outlines-cnc-down.bmp\">";
-      Showpic[29] = "<img src=\"mill-outlines-cnc-velocity.bmp\">";
-      Showpic[30] = "<img src=\"mill-outlines-cnc-fastvelocity.bmp\">";
-      Showpic[31] = "<img src=\"mill-outlines-cnc-rpm.bmp\">";
-      Showpic[32] = "<img src=\"mill-outlines-drill-velocity.bmp\">";
-      Showpic[33] = "<img src=\"mill-outlines-get_board_zero.bmp\">";           // 2011-02-07 Nullpunkt des Board = Maschinennullpunkt
-      Showpic[34] = "<img src=\"mill-outlines-cnc-dim-down.bmp\">";
-      Showpic[35] = "<img src=\"mill-outlines-cnc-parkposition.bmp\">";
-      Showpic[36] = "<img src=\"mill-outlines-inner-polygon-contour.bmp\">";    // 2010-01-25 inner/outer polygon contour
-      Showpic[37] = "<img src=\"mill-outlines-inner-polygon-contour1.bmp\">";
-      Showpic[38] = "<img src=\"mill-outlines-resolution.bmp\">";               // 2011-02-02 Auflösung Vor- Nachkommastellen
-      Showpic[39] = "<img src=\"mill-outlines-null_reference-drilling.bmp\">";  // 2011-02-11
+      Showpic[0]  = "<img src="+DEPENDENCIES+"/mill-outlines-eagle.bmp>";
+      Showpic[1]  = "<img src="+DEPENDENCIES+"/mill-outlines-free.bmp>";
+      Showpic[2]  = "<img src="+DEPENDENCIES+"/mill-outlines-ovrlpfp.bmp>";
+      Showpic[3]  = "<img src="+DEPENDENCIES+"/mill-outlines-pour.bmp>";
+      Showpic[4]  = "<img src="+DEPENDENCIES+"/mill-outlines-ovrlppp.bmp>";
+      Showpic[5]  = "<img src="+DEPENDENCIES+"/mill-outlines-drill.bmp>";
+      Showpic[6]  = "<img src="+DEPENDENCIES+"/mill-outlines-via.bmp>";
+      Showpic[7]  = "<img src="+DEPENDENCIES+"/mill-outlines-hole.bmp>";
+      Showpic[8]  = "<img src="+DEPENDENCIES+"/mill-outlines-top.bmp>";
+      Showpic[9]  = "<img src="+DEPENDENCIES+"/mill-outlines-bott.bmp>";
+      Showpic[10] = "<img src="+DEPENDENCIES+"/mill-outlines-coppdim.bmp>";
+      Showpic[11] = "<img src="+DEPENDENCIES+"/mill-outlines-nomir.bmp>";
+      Showpic[12] = "<img src="+DEPENDENCIES+"/mill-outlines-mirror.bmp>";
+      Showpic[13] = "<img src="+DEPENDENCIES+"/mill-outlines-script.bmp>";
+      Showpic[14] = "<img src="+DEPENDENCIES+"/mill-outlines-hpgl.bmp>";
+      Showpic[15] = "<img src="+DEPENDENCIES+"/mill-outlines-spacing.bmp>";
+      Showpic[16] = "<img src="+DEPENDENCIES+"/mill-outlines-mildimension.bmp>";
+      Showpic[17] = "<img src="+DEPENDENCIES+"/mill-outlines-null_reference.bmp>";
+      Showpic[18] = "<img src="+DEPENDENCIES+"/mill-outlines-isol-pour.bmp>";
+      Showpic[19] = "<img src="+DEPENDENCIES+"/mill-outlines-sec-isol.bmp>";
+      Showpic[20] = "<img src="+DEPENDENCIES+"/mill-outlines-sec-isolate.bmp>";
+      Showpic[21] = "<img src="+DEPENDENCIES+"/mill-outlines-question.bmp>";
+      Showpic[22] = "<img src="+DEPENDENCIES+"/mill-outlines-inside-milling.bmp>";
+      Showpic[23] = "<img src="+DEPENDENCIES+"/mill-outlines-isel.bmp>";
+      Showpic[24] = "<img src="+DEPENDENCIES+"/mill-outlines-cnc.bmp>";
+      Showpic[25] = "<img src="+DEPENDENCIES+"/mill-outlines-cnc-safety.bmp>";
+      Showpic[26] = "<img src="+DEPENDENCIES+"/mill-outlines-cnc-drill-down.bmp>";
+      Showpic[27] = "<img src="+DEPENDENCIES+"/mill-outlines-cnc-up.bmp>";
+      Showpic[28] = "<img src="+DEPENDENCIES+"/mill-outlines-cnc-down.bmp>";
+      Showpic[29] = "<img src="+DEPENDENCIES+"/mill-outlines-cnc-velocity.bmp>";
+      Showpic[30] = "<img src="+DEPENDENCIES+"/mill-outlines-cnc-fastvelocity.bmp>";
+      Showpic[31] = "<img src="+DEPENDENCIES+"/mill-outlines-cnc-rpm.bmp>";
+      Showpic[32] = "<img src="+DEPENDENCIES+"/mill-outlines-drill-velocity.bmp>";
+      Showpic[33] = "<img src="+DEPENDENCIES+"/mill-outlines-get_board_zero.bmp>";           // 2011-02-07 Nullpunkt des Board = Maschinennullpunkt
+      Showpic[34] = "<img src="+DEPENDENCIES+"/mill-outlines-cnc-dim-down.bmp>";
+      Showpic[35] = "<img src="+DEPENDENCIES+"/mill-outlines-cnc-parkposition.bmp>";
+      Showpic[36] = "<img src="+DEPENDENCIES+"/mill-outlines-inner-polygon-contour.bmp>";    // 2010-01-25 inner/outer polygon contour
+      Showpic[37] = "<img src="+DEPENDENCIES+"/mill-outlines-inner-polygon-contour1.bmp>";
+      Showpic[38] = "<img src="+DEPENDENCIES+"/mill-outlines-resolution.bmp>";               // 2011-02-02 Auflösung Vor- Nachkommastellen
+      Showpic[39] = "<img src="+DEPENDENCIES+"/mill-outlines-null_reference-drilling.bmp>";  // 2011-02-11
       info = Showpic[10];
       zinfo = Showpic[24];
       zInfotext = Z_Machine_Menu;
@@ -4341,7 +4341,7 @@ if ( !InPass2 && !InPassPour && !InPassOutmill && !InPassDimensionPoly) {
                 dlgCell( 1, 1) dlgHBoxLayout {
                                  dlgLabel("Layer ");
                                  dlgCheckBox("Top ", SelectedLayer1) {
-                                   info = "<img src=\"mill-outlines-mirror-nc-bottom.bmp\">";
+                                   info = "<img src="+DEPENDENCIES+"/mill-outlines-mirror-nc-bottom.bmp>";
                                    layer_info();
                                  }
                                  dlgStretch(1);
@@ -4350,7 +4350,7 @@ if ( !InPass2 && !InPassPour && !InPassOutmill && !InPassDimensionPoly) {
                 dlgCell( 1, 3) dlgHBoxLayout {
                                  dlgLabel("plus Layer");
                                  dlgComboBox(plus_Text, SelectedPlusLayerTop) {
-                                   info = "<img src=\"mill-outlines-plus-text.bmp\">";
+                                   info = "<img src="+DEPENDENCIES+"/mill-outlines-plus-text.bmp>";
                                    Infotext = TextInfoPlus;
                                  }
                                  dlgStretch(1);
@@ -4358,8 +4358,8 @@ if ( !InPass2 && !InPassPour && !InPassOutmill && !InPassDimensionPoly) {
 
                 dlgCell( 2, 0) dlgHBoxLayout {
                                  dlgCheckBox("&Mirror ", Mirror_On) {
-                                   if (Mirror_On) info = "<img src=\"mill-outlines-mirror-nc-bottom.bmp\">";
-                                   else           info = "<img src=\"mill-outlines-mirror-nc-top.bmp\">";
+                                   if (Mirror_On) info = "<img src="+DEPENDENCIES+"/mill-outlines-mirror-nc-bottom.bmp>";
+                                   else           info = "<img src="+DEPENDENCIES+"/mill-outlines-mirror-nc-top.bmp>";
                                    mirror_info();
                                  }
                                  dlgStretch(1);
@@ -4368,7 +4368,7 @@ if ( !InPass2 && !InPassPour && !InPassOutmill && !InPassDimensionPoly) {
                 dlgCell( 2, 1) dlgHBoxLayout {
                                  dlgLabel("Layer ");
                                  dlgCheckBox("Bottom ", SelectedLayer16) {
-                                   info = "<img src=\"mill-outlines-mirror-nc-top.bmp\">";
+                                   info = "<img src="+DEPENDENCIES+"/mill-outlines-mirror-nc-top.bmp>";
                                    layer_info();
                                  }
                                  dlgStretch(1);
@@ -4377,7 +4377,7 @@ if ( !InPass2 && !InPassPour && !InPassOutmill && !InPassDimensionPoly) {
                 dlgCell( 2, 3) dlgHBoxLayout {
                                  dlgLabel("plus Layer");
                                  dlgComboBox(plus_Text, SelectedPlusLayerBot) {
-                                   info = "<img src=\"mill-outlines-plus-text.bmp\">";
+                                   info = "<img src="+DEPENDENCIES+"/mill-outlines-plus-text.bmp>";
                                    Infotext = TextInfoPlus;
                                  }
                                  dlgStretch(1);
@@ -5069,7 +5069,7 @@ if (InPassDimensionPoly) {  // ## first run calculate the real outline ##
 
           dlgDialog("Contour error") { // 2010-01-20
             dlgLabel(i1);
-            dlgLabel("<img src=\"mill-outlines-dimension-contours.bmp\">");
+            dlgLabel("<img src="+DEPENDENCIES+"/mill-outlines-dimension-contours.bmp>");
             dlgLabel(i2);
             dlgHBoxLayout {
               dlgStretch(1);
@@ -5355,7 +5355,7 @@ if (InPassOutmill) {  // ## fourth run, drill holes, milling big holes and milli
           else {
             if (MillToolFree) { // 2013-03-05 nur wenn Tool#2 blow-up benutzt
               string polerror;
-              string polerrorimg = "<img src=\"mill-outlines-multi-dimension.bmp\">";
+              string polerrorimg = "<img src="+DEPENDENCIES+"/mill-outlines-multi-dimension.bmp>";
               sprintf(polerror, "<nobr><font color=\"red\"><b>ERROR:</b> %d VIA, %d positive und %d negative Konturen im Polygon </font><b>%s</b></nobr><p>" +
                                 "Überprüfen Sie, ob außerhalb der Boardkontur, Texte, Logos oder sonstige Elemente im Top oder Bottom Layer " +
                                 "platziert sind. Entweder entfernen Sie diese Elemente oder legen diese in einen <b>nicht</b> Kupferlayer.<br>" +
